@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Account Management | FerryHub Staff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css"><link rel="stylesheet" href="../css/dashboard.css"><link rel="stylesheet" href="../css/passenger-records.css"><link rel="stylesheet" href="../css/announcements.css"></head>
+<body data-page="accounts" data-root="../">
+<main id="page">
+  <div class="page-head"><h1>Account Management</h1><p>Create staff logins and choose which port each one works for. Staff see and change only their own port.</p></div>
+  <div class="atools"><button type="button" id="add"><img src="../assets/icons/add.png" alt="">Add staff account</button></div>
+  <section class="card"><div class="table-wrap"><table class="tbl"><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Port</th><th>Status</th><th>Created</th><th><span class="sr">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+  <p class="empty" id="empty" hidden></p></section>
+</main>
+<dialog class="dlg" id="cdlg" aria-labelledby="ct"><form id="cf" novalidate>
+  <div class="dlg-head"><h2 id="ct">Add staff account</h2><button type="button" class="iconbtn" data-close aria-label="Close">&#10005;</button></div>
+  <div class="dlg-body">
+    <div class="field"><label for="cu">Username <i>*</i></label><input id="cu" name="username" autocomplete="off" maxlength="30" placeholder="e.g. anilao.ana"><p class="hint">3 to 30 letters, numbers, dots, dashes or underscores.</p><p class="err" hidden></p></div>
+    <div class="field"><label for="cn">Name (optional)</label><input id="cn" name="displayName" maxlength="60" autocomplete="off"></div>
+    <div class="field"><label for="cp">Port <i>*</i></label><select id="cp" name="port"><option value="">Select</option><option value="ANILAO">Anilao Port</option><option value="TINGLOY">Tingloy Port</option></select><p class="err" hidden></p></div>
+    <div class="field"><label for="cw">Password <i>*</i></label><input id="cw" name="password" type="password" autocomplete="new-password" maxlength="72"><p class="hint">At least 8 characters. Share it with the staff member privately.</p><p class="err" hidden></p></div>
+    <p class="notice bad wide" data-ferr role="alert" hidden></p>
+  </div>
+  <div class="dlg-actions"><button type="button" class="btn btn-line" data-close>Cancel</button><button type="submit" class="btn btn-primary">Create account</button></div>
+</form></dialog>
+<dialog class="dlg" id="edlg" aria-labelledby="et"><form id="ef" novalidate>
+  <div class="dlg-head"><h2 id="et">Edit account</h2><button type="button" class="iconbtn" data-close aria-label="Close">&#10005;</button></div>
+  <div class="dlg-body">
+    <div class="field"><label for="en">Name</label><input id="en" name="displayName" maxlength="60" autocomplete="off"></div>
+    <div class="field" id="epf"><label for="ep">Port</label><select id="ep" name="port"><option value="ANILAO">Anilao Port</option><option value="TINGLOY">Tingloy Port</option></select></div>
+    <label class="chk wide"><input type="checkbox" name="active"> Account is active (can log in)</label>
+    <hr class="wide" style="width:100%;border:0;border-top:1px solid var(--line)">
+    <div class="field wide"><label for="rw">Reset password</label><input id="rw" name="password" type="password" autocomplete="new-password" maxlength="72" placeholder="Leave empty to keep the current password"><p class="err" hidden></p></div>
+    <p class="notice bad wide" data-ferr role="alert" hidden></p>
+  </div>
+  <div class="dlg-actions"><button type="button" class="btn btn-line" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save changes</button></div>
+</form></dialog>
+<script src="../js/common.js"></script><script src="../js/validation.js"></script><script src="../js/api.js"></script><script src="../js/auth.js"></script><script src="../js/navigation.js"></script><script src="../js/vendor/jsQR.js"></script><script src="../js/scanner.js"></script><script src="../js/accounts.js"></script>
+</body></html>

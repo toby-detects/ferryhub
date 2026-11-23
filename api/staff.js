@@ -73,6 +73,12 @@ const handlers = {
   },
   async me(req, a) { return { profile: pub(a) }; },
 
+  // ---- Admin analytics and booking records ----
+  async 'admin.bookings'(req, a) {
+    needAdmin(a);
+    return { bookings: await rpc('staff_admin_bookings') };
+  },
+
   // ---- Passenger records ----
   async 'passengers.list'(req, a) { return { passengers: await rpc('staff_passengers', { p_role: a.role, p_port: portOf(a, req.query.port, true) }) }; },
   async 'passengers.update'(req, a) {
@@ -208,7 +214,7 @@ const handlers = {
     return { ok: true };
   }
 };
-const READ = new Set(['me', 'passengers.list', 'passengers.idurl', 'schedule.month', 'schedule.day', 'schedule.templates', 'ticket.preview', 'announcements.list', 'accounts.list']);
+const READ = new Set(['me', 'passengers.list', 'passengers.idurl', 'schedule.month', 'schedule.day', 'schedule.templates', 'ticket.preview', 'announcements.list', 'accounts.list', 'admin.bookings']);
 
 export default async function handler(req, res) {
   const a = String(req.query.a || ''), fn = handlers[a];

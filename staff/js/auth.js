@@ -6,7 +6,7 @@ const Auth = {
 (() => {
   const form = document.getElementById('loginForm'); if (!form) return;
   const $ = id => document.getElementById(id), note = $('lnote');
-  if (Auth.session()) { location.replace('pages/passenger-records.html'); return; }
+  if (Auth.session()) { location.replace('pages/' + (Auth.session().role === 'admin' ? 'admin-dashboard.html' : 'passenger-records.html')); return; }
   let role = 'staff';
   const rules = { username: V.req('Enter your username.'), password: V.req('Enter your password.') };
   V.live(form, rules);
@@ -29,7 +29,7 @@ const Auth = {
     btn.disabled = true; btn.textContent = 'Signing in…';
     try {
       const out = await Staff.raw('login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: form.elements.username.value, password: pw.value, role }) });
-      Staff.set(out); location.href = 'pages/passenger-records.html';
+      Staff.set(out); location.href = 'pages/' + (out.profile.role === 'admin' ? 'admin-dashboard.html' : 'passenger-records.html');
     } catch (err) {
       note.hidden = false; note.className = 'notice bad'; note.textContent = err.message;
       if (err.status === 401) ['username', 'password'].forEach(n => form.elements[n].closest('.field').classList.add('bad'));

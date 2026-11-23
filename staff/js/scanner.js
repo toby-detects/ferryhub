@@ -58,10 +58,19 @@ const Scanner = (() => {
     res.hidden = false; $('[data-manual]').hidden = true; $('[data-cam]').hidden = true; $('[data-hint]').hidden = true;
     res.innerHTML = `<div class="scan-card ${warn ? 'bad' : 'ok'}"><div class="scan-head"><b>${UI.esc(t.regNo)}</b><span class="badge ${t.status === 'validated' ? 's-active' : 's-draft'}">${t.status}</span></div>
       <dl class="scan-info">${row('Route', `${PORT_NAMES[t.portDeparture]} → ${PORT_NAMES[t.portArrival]}`)}${row('Departure', `${Time.longDate(t.travelDate)}, ${Time.label(t.departTime)}`)}${row('Registered', Time.stamp(t.registeredAt))}${row('Passengers', t.passengerCount)}</dl>
-      <ol class="scan-list">${t.passengers.map(p => `<li><span>${UI.esc(p.name)}</span><i>${UI.esc(p.category)}, ${p.age}</i></li>`).join('')}</ol>
+      <ol class="scan-list">${t.passengers.map(p => `<li data-pax-id="${UI.esc(p.id)}"><span>${UI.esc(p.name)}</span><i>${UI.esc(p.category)}, ${p.age}</i><small>Email: ${UI.esc(p.email || 'Not provided')}</small>${p.id ? `<button type="button" class="linkbtn" data-view-id="${UI.esc(p.id)}">${p.hasId ? 'View ID' : 'ID not uploaded'}</button>` : ''}</li>`).join('')}</ol>
       ${warn ? `<p class="notice bad">${warn}</p>` : `<p class="hint">Confirming adds ${t.passengerCount} passenger${t.passengerCount > 1 ? 's' : ''} to the ${Time.label(t.departTime)} departure.</p>`}</div>
       <div class="dlg-actions scan-actions"><button class="btn btn-line" data-again>Scan another</button>${warn ? '' : '<button class="btn btn-primary" data-ok>Validate ticket</button>'}</div>`;
     res.querySelector('[data-again]').onclick = reset;
+    res.querySelectorAll('[data-view-id]').forEach(button => {
+      const passenger = t.passengers.find(p => p.id === button.dataset.viewId);
+      if (!passenger || !passenger.hasId) { button.disabled = true; return; }
+      button.onclick = async () => {
+        const win = window.open('', '_blank');
+        try { const { url } = await Staff.api('passengers.idurl', { query: { id: passenger.id } }); if (win) win.location.href = url; else location.href = url; }
+        catch (e) { if (win) win.close(); setErr(UI.err(e)); }
+      };
+    });
     const ok = res.querySelector('[data-ok]');
     if (ok) ok.onclick = async () => {
       ok.disabled = true; ok.textContent = 'Validating…'; setErr('');

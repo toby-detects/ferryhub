@@ -18,8 +18,7 @@ const ERR = {
   BAD_BOOKED: [400, 'Booked passengers must be a whole number, 0 or more.'], BAD_STATUS: [400, 'Invalid status.'], BAD_TIME: [400, 'Enter a valid departure time.'],
   BAD_NAME: [400, 'Enter a valid full name (no numbers).'], BAD_AGE: [400, 'Enter an age from 1 to 120.'], BAD_AGE_SENIOR: [400, 'Senior citizens must be 60 or older.'],
   BAD_AGE_CHILD: [400, 'Children must be 11 or younger.'], BAD_CATEGORY: [400, 'Choose a valid category.'], BAD_CLASS: [400, 'Choose Local or Tourist.'],
-  BAD_EMAIL: [400, 'Enter a valid email address.'], BAD_ADDRESS: [400, 'Choose the complete address (region, province, city, barangay).'],
-  BAD_FARE: [400, 'A fare must be a number from 0 to 9,999,999 with at most 2 decimals, or left empty.']
+  BAD_EMAIL: [400, 'Enter a valid email address.'], BAD_ADDRESS: [400, 'Choose the complete address (region, province, city, barangay).']
 };
 const mapErr = e => { const k = String((e && e.message) || '').trim(); return ERR[k] ? new HttpError(...ERR[k]) : e; };
 async function rpc(fn, args) { const { data, error } = await db().rpc(fn, args); if (error) throw mapErr(error); return data; }
@@ -117,15 +116,7 @@ const handlers = {
   // ---- Tickets ----
   async 'ticket.preview'(req, a) {
     const ref = String(req.query.ref || '').trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(ref)) throw new HttpError(404, 'Not found.');
-    const t = await rpc('staff_ticket', { p_role: a.role, p_port: a.port, p_ref: ref });
-    // Each passenger's ID is shown through a private link that expires after 5 minutes. File paths never leave the server.
-    const store = db().storage.from('ids');
-    t.passengers = await Promise.all((t.passengers || []).map(async ({ idPath, ...p }) => {
-      let idUrl = null, idKind = null;
-      if (idPath) { const { data } = await store.createSignedUrl(idPath, 300); if (data) { idUrl = data.signedUrl; idKind = /\.pdf$/i.test(idPath) ? 'pdf' : 'image'; } }
-      return { ...p, hasId: !!idPath, idUrl, idKind };
-    }));
-    return t;
+    return await rpc('staff_ticket', { p_role: a.role, p_port: a.port, p_ref: ref });
   },
   async 'ticket.validate'(req, a) {
     const ref = String((req.body || {}).ref || '').trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(ref)) throw new HttpError(404, 'Not found.');
@@ -172,23 +163,15 @@ const handlers = {
     return { url: st.getPublicUrl(path).data.publicUrl };
   },
 
-  // ---- Admin: booking data for the dashboard, fares ----
-  async 'admin.bookings'(req, a) { needAdmin(a); return { bookings: await rpc('admin_bookings', {}) }; },
-  async 'admin.fares'(req, a) { needAdmin(a); return { fares: await rpc('admin_fares', {}) }; },
-  async 'admin.fares.save'(req, a) { needAdmin(a); const b = req.body || {}; if (!b.fares || typeof b.fares !== 'object') throw bad('Invalid fares.'); await rpc('admin_save_fares', { p: b.fares }); return { ok: true }; },
-  async 'admin.fares.backfill'(req, a) { needAdmin(a); return { updated: await rpc('admin_backfill_fares', {}) }; },
-
-  // ---- Accounts (admin only; the Admin screen lists Staff accounts) ----
+  // ---- Accounts (admin only) ----
   async 'accounts.list'(req, a) {
     needAdmin(a);
-    const { data, error } = await db().from('profiles').select(PROFILE + ', created_at, seq').eq('role', 'staff').order('seq'); if (error) throw error;
-    const last = {};
-    try { const r = await db().auth.admin.listUsers({ page: 1, perPage: 1000 }); (r.data.users || []).forEach(u => { last[u.id] = u.last_sign_in_at; }); } catch (e) { /* last login is optional */ }
-    return { accounts: data.map(p => ({ ...pub(p), seq: Number(p.seq), active: p.active, createdAt: p.created_at, lastLogin: last[p.id] || null })) };
+    const { data, error } = await db().from('profiles').select(PROFILE + ', created_at').order('role').order('username'); if (error) throw error;
+    return { accounts: data.map(p => ({ ...pub(p), active: p.active, createdAt: p.created_at })) };
   },
   async 'accounts.create'(req, a) {
     needAdmin(a);
-    const b = req.body || {}, username = String(b.username || '').trim().toLowerCase(), password = String(b.password || ''), port = b.port, name = String(b.displayName || '').trim(), active = b.active !== false;
+    const b = req.body || {}, username = String(b.username || '').trim().toLowerCase(), password = String(b.password || ''), port = b.port, name = String(b.displayName || '').trim();
     if (!/^[a-z0-9._-]{3,30}$/.test(username)) throw bad('Username: 3 to 30 letters, numbers, dots, dashes or underscores.');
     if (password.length < 8 || password.length > 72) throw bad('Password must be 8 to 72 characters.');
     if (!PORTS[port]) throw bad('Choose the staff member’s port.');
@@ -197,18 +180,9 @@ const handlers = {
     const email = `${username}@${process.env.STAFF_EMAIL_DOMAIN || 'staff.ferryhub.app'}`;
     const { data: u, error } = await db().auth.admin.createUser({ email, password, email_confirm: true });
     if (error) throw new HttpError(400, 'Could not create the login: ' + error.message);
-    const { error: pe } = await db().from('profiles').insert({ id: u.user.id, username, display_name: name || null, role: 'staff', port, active });
+    const { error: pe } = await db().from('profiles').insert({ id: u.user.id, username, display_name: name || null, role: 'staff', port });
     if (pe) { await db().auth.admin.deleteUser(u.user.id); throw pe; }
-    if (!active) await db().auth.admin.updateUserById(u.user.id, { ban_duration: '876000h' });
     return { ok: true };
-  },
-  async 'accounts.delete'(req, a) {
-    needAdmin(a);
-    const ids = (req.body || {}).ids; if (!Array.isArray(ids) || !ids.length || ids.length > 100 || !ids.every(i => UUID.test(String(i)))) throw bad('Invalid selection.');
-    const { data } = await db().from('profiles').select('id, role').in('id', ids);
-    if (!data || data.length !== ids.length || data.some(p => p.role !== 'staff')) throw bad('Only existing Staff accounts can be deleted.');
-    for (const id of ids) { const { error } = await db().auth.admin.deleteUser(id); if (error) throw new HttpError(400, 'Could not delete: ' + error.message); }
-    return { deleted: ids.length };
   },
   async 'accounts.update'(req, a) {
     needAdmin(a);
@@ -234,7 +208,7 @@ const handlers = {
     return { ok: true };
   }
 };
-const READ = new Set(['admin.bookings', 'admin.fares', 'me', 'passengers.list', 'passengers.idurl', 'schedule.month', 'schedule.day', 'schedule.templates', 'ticket.preview', 'announcements.list', 'accounts.list']);
+const READ = new Set(['me', 'passengers.list', 'passengers.idurl', 'schedule.month', 'schedule.day', 'schedule.templates', 'ticket.preview', 'announcements.list', 'accounts.list']);
 
 export default async function handler(req, res) {
   const a = String(req.query.a || ''), fn = handlers[a];

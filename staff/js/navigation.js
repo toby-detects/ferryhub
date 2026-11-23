@@ -35,26 +35,21 @@ const NAV = [
   { id: 'trips', label: 'Trip Information Records', icon: 'menu-trips', locked: true },
   { id: 'register', label: 'Register Passenger', icon: 'menu-register', locked: true }
 ];
-const ADMIN_NAV = [
-  { id: 'dashboard', label: 'Dashboard', href: 'admin-dashboard.html', file: 'admin-dashboard.svg' },
-  { id: 'bookings', label: 'Booking Records', href: 'admin-bookings.html', file: 'admin-bookings.svg' },
-  { id: 'accounts', label: 'Account Management', href: 'accounts.html', file: 'admin-accounts.svg' }
-];
 
 (() => {
   const page = document.body.dataset.page; if (!page || !Auth.require()) return;
   const me = UI.profile(), isAdmin = me.role === 'admin', allPorts = document.body.dataset.allports === '1', main = document.getElementById('page');
   if (page === 'accounts' && !isAdmin) { location.replace('passenger-records.html'); return; }
   const where = isAdmin ? 'Administrator' : PORT_NAMES[me.port];
-  const nav = (isAdmin ? ADMIN_NAV : NAV.filter(n => !n.admin || isAdmin)).map(n => n.locked
+  const nav = NAV.filter(n => !n.admin || isAdmin).map(n => n.locked
     ? `<button type="button" class="locked" data-soon aria-disabled="true"><img src="../assets/icons/${n.icon}.png" alt=""><span>${n.label}<span class="chip">Under Progress</span></span></button>`
-    : `<a href="${n.href}"${n.id === page ? ' aria-current="page"' : ''}>${n.svg || `<img src="../assets/icons/${n.file || n.icon + '.png'}" alt="">`}<span>${n.label}</span></a>`).join('');
+    : `<a href="${n.href}"${n.id === page ? ' aria-current="page"' : ''}>${n.svg || `<img src="../assets/icons/${n.icon}.png" alt="">`}<span>${n.label}</span></a>`).join('');
   const portSel = isAdmin ? `<label class="portsel"><span class="sr">Port</span><select id="portSel" aria-label="Port">${allPorts ? '<option value="ALL">All ports</option>' : ''}<option value="ANILAO">Anilao Port</option><option value="TINGLOY">Tingloy Port</option></select></label>` : '';
   document.body.insertAdjacentHTML('afterbegin', `
   <div class="app">
     <aside class="side" id="side" aria-label="Sidebar">
       <div class="side-clock" aria-live="off"><span id="cd"></span><span id="ct"></span></div>
-      <a class="brand" href="${isAdmin ? 'admin-dashboard.html' : 'passenger-records.html'}"><img src="../assets/images/${isAdmin ? 'admin' : 'staff'}-logo.png" alt="FerryHub ${isAdmin ? 'Admin' : 'Staff'} Portal"></a>
+      <a class="brand" href="passenger-records.html"><img src="../assets/images/staff-logo.png" alt="FerryHub Staff Portal"></a>
       <nav class="nav" aria-label="Main">${nav}</nav>
       <button type="button" class="logout" id="logout"><img src="../assets/icons/logout.png" alt="">Logout</button>
     </aside>
@@ -71,7 +66,7 @@ const ADMIN_NAV = [
     </div>
   </div>
   <div class="scrim" id="scrim"></div>
-  ${isAdmin ? '' : '<button class="validate" id="validate"><span>Validate Ticket</span><img src="../assets/icons/camera.png" alt=""></button>'}
+  <button class="validate" id="validate"><span>Validate Ticket</span><img src="../assets/icons/camera.png" alt=""></button>
   <div id="toasts" aria-live="polite"></div>`);
   document.getElementById('slot').append(main);
   document.title = document.title.replace(' | FerryHub Staff', '') + ' | FerryHub Staff';
@@ -92,6 +87,5 @@ const ADMIN_NAV = [
   const out = async () => { if (await UI.confirm('Log out?', 'You will return to the login page.', 'Logout')) Staff.logout(); };
   document.getElementById('logout').onclick = out; document.getElementById('logout2').onclick = out;
   document.getElementById('bell').onclick = () => UI.soon();
-  const validateButton = document.getElementById('validate');
-  if (validateButton) validateButton.onclick = () => Scanner.open();
+  document.getElementById('validate').onclick = () => Scanner.open();
 })();

@@ -171,7 +171,7 @@ begin
     'travelDate', r.travel_date, 'departTime', to_char(r.depart_time, 'HH24:MI'), 'registeredAt', r.registered_at,
     'validatedAt', r.validated_at, 'validatedBy', vname, 'isToday', r.travel_date = (now() at time zone 'Asia/Manila')::date,
     'passengerCount', r.passenger_count,
-    'passengers', (select jsonb_agg(jsonb_build_object('id', id, 'position', position, 'name', full_name, 'age', age, 'category', category, 'email', email, 'hasId', id_path is not null) order by position)
+    'passengers', (select jsonb_agg(jsonb_build_object('position', position, 'name', full_name, 'age', age, 'category', category, 'email', email, 'hasId', id_path is not null) order by position)
                    from passengers where registration_id = r.id));
 end $$;
 
@@ -201,33 +201,11 @@ begin
   return jsonb_build_object('regNo', r.reg_no, 'passengers', r.passenger_count, 'booked', s.booked, 'capacity', s.capacity);
 end $$;
 
--- Admin analytics source. This function deliberately exposes only reporting fields.
-create or replace function public.staff_admin_bookings()
-returns jsonb language sql stable security definer set search_path = public as $$
-  select coalesce(jsonb_agg(
-    jsonb_build_object(
-      'regNo', r.reg_no,
-      'pax', r.passenger_count,
-      'port', r.port_departure,
-      'departDate', r.travel_date,
-      'departTime', to_char(r.depart_time, 'HH24:MI'),
-      'registeredAt', r.registered_at,
-      'totalFee', 0,
-      'status', case r.status when 'cancelled' then 'Cancelled' when 'validated' then 'Verified' else 'Confirmed' end,
-      'passengers', (
-        select jsonb_agg(jsonb_build_object('category', p.category, 'fare', 0) order by p.position)
-        from passengers p where p.registration_id = r.id
-      )
-    ) order by r.registered_at desc
-  ), '[]'::jsonb)
-  from registrations r;
-$$;
-
 do $$ declare f text; begin
   foreach f in array array[
     'staff_day_slots(text,date)','staff_month_summary(text,date)','staff_save_slot(text,date,time,int,int,text)','staff_templates(text)',
     'staff_save_template(text,uuid,time,int,boolean)','staff_passengers(text,text)','staff_passenger_idpath(text,text,uuid)',
-    'staff_update_passenger(text,text,uuid,jsonb)','staff_ticket(text,text,text)','validate_ticket(text,text,uuid,text)','staff_admin_bookings()'] loop
+    'staff_update_passenger(text,text,uuid,jsonb)','staff_ticket(text,text,text)','validate_ticket(text,text,uuid,text)'] loop
     execute format('revoke execute on function public.%s from public, anon, authenticated', f);
     execute format('grant execute on function public.%s to service_role', f);
   end loop; end $$;

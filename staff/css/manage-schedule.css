@@ -30,3 +30,8 @@
 .sum dt{color:var(--muted)}.sum dd{margin:0;font-weight:600}
 @media(max-width:1000px){.sched{grid-template-columns:1fr}}
 @media(max-width:520px){.cols{grid-template-columns:1fr}.day,.blank{height:44px}}
+.schedtools{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}
+.tpl-body{padding:1rem 1.4rem 1.4rem;max-height:76vh;overflow:auto}.tpl-form{display:grid;gap:.8rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--line)}.tpl-form h3{font-size:1rem}
+.tbl.small{min-width:0}.tbl.small th,.tbl.small td{padding:.5rem .6rem}
+.slot small{max-width:16rem}
+.slot>span:first-child{white-space:nowrap}

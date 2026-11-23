@@ -39,3 +39,9 @@
  body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(8,24,48,.5);z-index:25}
  .burger{display:block}.route i,.route span{display:none}.top{padding:0 .8rem}.validate span{display:none}
 }
+.top .sp{flex:1}
+.nav svg{width:28px;height:28px;fill:#fff;flex:none}
+.portsel select{font:600 .95rem "IBM Plex Sans",system-ui,sans-serif;color:#fff;background:rgba(20,54,95,.55);border:1px solid rgba(255,255,255,.55);border-radius:10px;padding:.4rem .6rem}
+.portsel option{color:var(--text)}
+.acct>button .who{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}.who b{font:700 .95rem Manrope,system-ui,sans-serif}.who small{font-size:.8rem;opacity:.92}
+@media(max-width:900px){.who small{display:none}}

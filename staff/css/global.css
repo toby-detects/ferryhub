@@ -39,3 +39,19 @@ h1,h2,h3{margin:0;line-height:1.2;color:var(--navy)}
 .toast.ok{border-color:#32d596}.toast.warn{border-color:#ffb020}
 @media(max-width:560px){.dlg-body{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.chk{display:flex;gap:.6rem;align-items:center;font-size:.95rem}.chk input{width:20px;height:20px;accent-color:var(--action)}
+.addrhead{margin:.2rem 0 -.3rem;font:700 .95rem Manrope,system-ui,sans-serif;color:var(--navy)}
+.notice{margin:0;padding:.6rem .9rem;border-radius:10px;font-size:.9rem;background:var(--amber-bg);color:var(--amber)}.notice.bad{background:var(--red-bg);color:var(--red)}
+.field select:disabled{background:#eef2f5;color:var(--muted);cursor:not-allowed}
+.hint{margin:0}
+/* Scanner */
+.dlg.scan{width:min(94vw,520px)}.scan-body{padding:1rem 1.4rem 1.4rem;display:grid;gap:.8rem;max-height:78vh;overflow:auto}
+.scan-cam{position:relative;background:#0b1520;border-radius:14px;overflow:hidden;aspect-ratio:4/3}.scan-cam video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-frame{position:absolute;inset:18%;border:3px solid #fff;border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.35);pointer-events:none}
+.row2{display:flex;gap:.6rem}.row2 input{flex:1}
+.scan-card{border:2px solid var(--green);border-radius:14px;padding:1rem}.scan-card.bad{border-color:var(--red)}
+.scan-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}.scan-head b{font:800 1.3rem Manrope,system-ui,sans-serif;color:var(--navy)}
+.scan-info{display:grid;grid-template-columns:auto 1fr;gap:.2rem 1rem;margin:0 0 .8rem}.scan-info div{display:contents}.scan-info dt{color:var(--muted)}.scan-info dd{margin:0;font-weight:600}
+.scan-list{margin:0 0 .8rem;padding-left:1.3rem}.scan-list li{padding:.2rem 0}.scan-list li i{font-style:normal;color:var(--muted);margin-left:.5rem;font-size:.9rem}
+.scan-actions{padding:.6rem 0 0!important;border:0!important}.done-msg{margin:.4rem 0;font-size:1.05rem}
+[hidden]{display:none!important}
